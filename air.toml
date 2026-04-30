@@ -1,0 +1,38 @@
+[format]
+# 行宽设置为160，适合现代宽屏显示器
+line-width = 160
+
+# 缩进宽度为4个空格，提高代码可读性
+indent-width = 4
+
+# 使用空格进行缩进（R社区的主流风格）
+indent-style = "space"
+
+# 自动检测行尾符
+line-ending = "auto"
+
+# 保持持久换行符（保留您的手动换行）
+persistent-line-breaks = true
+
+# 排除不需要格式化的文件和目录
+exclude = [
+  "*.Rproj",
+  ".Rhistory",
+  ".RData",
+  ".Ruserdata",
+  "map_json/",  # 排除地图数据目录
+  "*.geojson",  # 排除地理JSON文件
+  "*.json"  # 排除JSON文件
+]
+
+# 使用默认排除模式
+default-exclude = true
+
+# 跳过特定函数的格式化（如果需要）
+skip = ["matrix", "data.frame"]
+
+# 将特定函数格式化为表格
+table = []
+
+# 使用默认的表格格式化函数
+default-table = true
