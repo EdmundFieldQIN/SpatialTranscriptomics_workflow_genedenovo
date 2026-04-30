@@ -330,19 +330,25 @@ anterior <- SplitObject(st,split.by = "orig.ident")[[1]]
 # VisiumV2版本的坐标提取方法
 # 方法一：使用 GetTissueCoordinates()
 coords <- GetTissueCoordinates(anterior)
-anterior[["ant_imagerow"]] <- coords[["x"]]
-anterior[["ant_imagecol"]] <- coords[["y"]]
+anterior[["x"]] <- coords[["x"]]
+anterior[["y"]] <- coords[["y"]]
 # 方法二：直接从图像对象中提取坐标
-anterior[["ant_imagerow"]] <- anterior@images$anterior@boundaries$centroids@coords[,1]
-anterior[["ant_imagecol"]] <- anterior@images$anterior@boundaries$centroids@coords[,2]
+anterior[["x"]] <- anterior@images$anterior@boundaries$centroids@coords[,1]
+anterior[["y"]] <- anterior@images$anterior@boundaries$centroids@coords[,2]
+# 方法三：Extract and attach spatial coordinates from anterior1 image
+centroids <- anterior@images$anterior@boundaries$centroids
+coords <- setNames(as.data.frame(centroids@coords), c("x", "y"))
+rownames(coords) <- centroids@cells
+anterior$x <- coords[colnames(anterior), "x"]
+anterior$y <- coords[colnames(anterior), "y"]
 
 # VisiumV1版本的坐标提取方法
-anterior[["ant_imagerow"]] <- anterior@images[["anterior"]]@coordinates[["imagerow"]]
-anterior[["ant_imagecol"]] <- anterior@images[["anterior"]]@coordinates[["imagecol"]]
+anterior[["x"]] <- anterior@images[["anterior"]]@coordinates[["imagerow"]]
+anterior[["y"]] <- anterior@images[["anterior"]]@coordinates[["imagecol"]]
 
 #提取方法
-cortex <- subset(anterior,ant_imagerow > 5000 & ant_imagecol < 9000) # 根据坐标提取行大于5000且列小于9000的区域
-cortex <- subset(cortex,ant_imagerow < 9000 & ant_imagecol > 5000) # 根据坐标提取上一步提取的行小于9000且列大于5000的局部区域
+cortex <- subset(anterior,x > 5000 & y < 9000) # 根据坐标提取行大于5000且列小于9000的区域
+cortex <- subset(cortex,x < 9000 & y > 5000) # 根据坐标提取上一步提取的行小于9000且列大于5000的局部区域
 #从全局查看提取结果
 cortex@images[["posterior"]] <- NULL # 删除posterior图像
 SpatialDimPlot(cortex, crop = FALSE, label = TRUE, pt.size.factor = 2, label.size = 3)# crop参数设置为TRUE可以只显示提取的局部区域，设置为FALSE可以同时显示全局图像和提取的局部区域
