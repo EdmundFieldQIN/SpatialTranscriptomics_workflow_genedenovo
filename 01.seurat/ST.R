@@ -34,7 +34,10 @@ options(future.globals.maxSize = 100000 * 1024^2)  # 10 GiB
 dir()
 setwd("/data/h007/workspace/SpatialTranscriptomics/2.Demo/01.seurat/")
 project.name <- "ST"
-
+output_dir <- "./output/"
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
 
 
 
@@ -93,13 +96,13 @@ dim(st)
 # st <- ScoreJackStraw(st,dims = 1:50)
 
 # pjs <- JackStrawPlot(st,dims = 1:50)
-# pdf(paste(project.name,"_JackStrawPlot.pdf",sep = "_"),width = 10,height = 6)
+# pdf(paste0(output_dir,project.name,"_JackStrawPlot.pdf"),width = 10,height = 6)
 # pjs
 # dev.off()
 
 
 # pelb<- ElbowPlot(st,ndims = 50) #碎石图
-# pdf(paste(project.name,"_ElbowPlot.pdf",sep = "_"),width = 10,height = 6)
+# pdf(paste0(output_dir,project.name,"_ElbowPlot.pdf"),width = 10,height = 6)
 # pelb
 # dev.off()
 
@@ -109,7 +112,7 @@ dim(st)
 st <- SCTransform(st,assay = "Spatial")  #12min   #加载glmGamPoi后2min
 st <- RunPCA(st)
 pelb <- ElbowPlot(st,ndims = 50) #碎石图
-pdf(paste0(project.name,"_01_ElbowPlot.pdf"),width = 10,height = 6)
+pdf(paste0(output_dir,project.name,"_01_ElbowPlot.pdf"),width = 10,height = 6)
 pelb
 dev.off()
 
@@ -134,7 +137,7 @@ st <- FindClusters(st,resolution = 0.4)
 #col1 <- c("#005EEC","#009BB1","#50D24A","#A0CD1E","#D0CA0F","#FFC700","#FFA101","#FF7B01","#FF4601","#FE1100","#FF4867","#FF7497","#EF3AA2","#DE00AD","#DE005D","#8A2BE2","#0000FF")
 p1 <- SpatialDimPlot(st,label = T,label.size = 3)
 p1
-pdf(paste0(project.name,"_02_SpatialDimPlot.pdf"),width = 10,height = 6)
+pdf(paste0(output_dir,project.name,"_02_SpatialDimPlot.pdf"),width = 10,height = 6)
 p1
 dev.off()
 #除了组织切片，数据也可以使用tSNE非线性降维进行可视化
@@ -144,15 +147,15 @@ st <- RunUMAP(st, dims = 1:30, label = T)
 # data.tsne <- st@reductions[["tsne"]]@cell.embeddings
 # data.umap <- st@reductions[["umap"]]@cell.embeddings
 # data.cluster <- st[["seurat_clusters"]]
-# write.csv(data.umap,"data.umap.csv",row.names = T,quote = T)
-# write.csv(data.tsne,"data.tsne.csv",row.names = T,quote = T)
-# write.csv(data.cluster,"data.cluster.csv",row.names = T,quote = T)
+# write.csv(data.umap,paste0(output_dir,project.name,"_data.umap.csv"),row.names = T,quote = T)
+# write.csv(data.tsne,paste0(output_dir,project.name,"_data.tsne.csv"),row.names = T,quote = T)
+# write.csv(data.cluster,paste0(output_dir,project.name,"_data.cluster.csv"),row.names = T,quote = T)
 p2 <- DimPlot(st,reduction = "tsne",pt.size = 1.5,label = T)
 p2
 p3 <- DimPlot(st, reduction = "umap",pt.size = 1.5,label = T)
 p3
 p2+p3
-pdf(paste0(project.name,"_03_tsne_umap.pdf"),width = 10,height = 5)
+pdf(paste0(output_dir,project.name,"_03_tsne_umap.pdf"),width = 10,height = 5)
 p2+p3
 dev.off()
 
@@ -163,11 +166,11 @@ dev.off()
 #  a[i] <- strsplit(colnames(st),"_")[[i]][1]
 # }
 # st@meta.data[["orig.ident"]] <- a
-pdf(paste0(project.name,"_04_umap_cluster_sample.pdf"),width = 10,height = 5)
+pdf(paste0(output_dir,project.name,"_04_umap_cluster_sample.pdf"),width = 10,height = 5)
 DimPlot(st,reduction = "umap",group.by = c("seurat_clusters","orig.ident"),pt.size = 1.2)
 dev.off()
 
-pdf(paste0(project.name,"_05_tsne_cluster_sample.pdf"),width = 10,height = 5)
+pdf(paste0(output_dir,project.name,"_05_tsne_cluster_sample.pdf"),width = 10,height = 5)
 DimPlot(st,reduction = "tsne",group.by = c("seurat_clusters","orig.ident"),pt.size = 1.2)
 dev.off()
 
@@ -211,7 +214,7 @@ p3<-p2+mytheme
 p3
 
 #保存图片
-pdf(paste0(project.name,"_06_cluster_sample_barplot.pdf"),width = 10,height = 6)
+pdf(paste0(output_dir,project.name,"_06_cluster_sample_barplot.pdf"),width = 10,height = 6)
 p3
 dev.off()
 
@@ -240,13 +243,13 @@ load("ST.Rda")
 dif <- FindAllMarkers(st,assay = "SCT",logfc.threshold = 0.6,min.pct = 0.4,only.pos = T)
 
 # logfc.threshold定义上调倍数阈值，min.pct定义基因至少在细胞亚群中多少细胞中表达，only.pos确定只筛选上调基因
-write.table(dif,"diff.txt",sep = "\t",quote = F,row.names = T,col.names = T)
-dif <- read.table("diff.txt",header = T,row.names = 1,sep = "\t")
+write.table(dif,paste0(output_dir,"diff.txt"),sep = "\t",quote = F,row.names = T,col.names = T)
+dif <- read.table(paste0(output_dir,"diff.txt"),header = T,row.names = 1,sep = "\t")
 # 通过dplyr包来完成对top基因的筛选，其中|>与linux中的管道符“|”的功能相同
 sig.dif <- dif |> 
   group_by(cluster) |> 
   top_n(n = 5,wt = avg_log2FC)
-write.table(sig.dif,"diff.sig.txt",sep = "\t",quote = F,row.names = T,col.names = T)
+write.table(sig.dif,paste0(output_dir,"diff.sig.txt"),sep = "\t",quote = F,row.names = T,col.names = T)
 
 # 差异基因
 genes <- unique(sig.dif$gene)
@@ -257,7 +260,7 @@ length(genes);genes
 DotPlot(st,features =genes[26:45]) + theme(axis.text.x = element_text(angle = 45,hjust = 1))
 # 黄紫热图（一张大图）
 DoHeatmap(st,features = genes,angle=45,assay = "SCT")
-pdf(paste0(project.name,"_06_doheatmap.pdf"),width = 15,height = 9)
+pdf(paste0(output_dir,project.name,"_06_doheatmap.pdf"),width = 15,height = 9)
 DoHeatmap(st,features = genes,angle=45,assay = "SCT")
 dev.off()
 # umap热图和tSNE热图（每个基因一个小图）
@@ -280,8 +283,8 @@ group.cluster.sig.dif <- group.cluster.dif |>
 # 取正调控top10和负调控top10
 group.cluster.sig.dif1 <- rbind(group.cluster.dif |> top_n(n = 10,wt = avg_log2FC),
                               group.cluster.dif |> top_n(n = -10,wt = avg_log2FC))
-# write.table(group.cluster.sig.dif,"group.cluster.sig.dif.txt",sep = "\t",quote = F,row.names = T,col.names = T)
-# write.table(group.cluster.sig.dif1,"group.cluster.sig.diftop10.txt",sep = "\t",quote = F,row.names = T,col.names = T)
+write.table(group.cluster.sig.dif,paste0(output_dir,"group.cluster.sig.dif.txt"),sep = "\t",quote = F,row.names = T,col.names = T)
+write.table(group.cluster.sig.dif1,paste0(output_dir,"group.cluster.sig.diftop10.txt"),sep = "\t",quote = F,row.names = T,col.names = T)
 
 #（3）不同样本之间的亚群差异基因分析
 # a <- c(rep(0,ncol(st)))
@@ -303,16 +306,16 @@ group.sample.dif <- FindMarkers(
 )
 group.sample.sig.dif <- group.sample.dif |> top_n(n = 10, wt = abs(avg_log2FC)) |> mutate(diff.pct = pct.1 - pct.2)
 group.sample.sig.dif1 <- rbind(group.sample.dif |> top_n(n = 10, wt = avg_log2FC), group.sample.dif |> top_n(n = -10, wt = avg_log2FC))
-write.table(group.sample.sig.dif, "group.sample.sig.dif.txt", sep = "\t", quote = F, row.names = T, col.names = T)
-write.table(group.sample.sig.dif1, "group.sample.sig.dif1.txt", sep = "\t", quote = F, row.names = T, col.names = T)
+write.table(group.sample.sig.dif, paste0(output_dir,"group.sample.sig.dif.txt"), sep = "\t", quote = F, row.names = T, col.names = T)
+write.table(group.sample.sig.dif1, paste0(output_dir,"group.sample.sig.dif1.txt"), sep = "\t", quote = F, row.names = T, col.names = T)
 
-save(st,file = "ST.Rda")
+save(st,file = paste0(output_dir,"ST.Rda"))
 
 #################################################################################
 #局部区域筛选及分析
 rm(list = ls())
 gc()
-load("ST.Rda")
+load(paste0(output_dir,"ST.Rda"))
 
 ##6. 局部区域筛选步骤
 #（1）情况一：提取亚群区域
@@ -324,15 +327,25 @@ SpatialDimPlot(C1_C3, crop = FALSE, label = TRUE, pt.size.factor = 1, label.size
 anterior <- SplitObject(st,split.by = "orig.ident")[[1]]
 
 #将图形坐标提取到meat.data中，方便局部区域筛选
+# VisiumV2版本的坐标提取方法
+# 方法一：使用 GetTissueCoordinates()
+coords <- GetTissueCoordinates(anterior)
+anterior[["ant_imagerow"]] <- coords[["x"]]
+anterior[["ant_imagecol"]] <- coords[["y"]]
+# 方法二：直接从图像对象中提取坐标
+anterior[["ant_imagerow"]] <- anterior@images$anterior@boundaries$centroids@coords[,1]
+anterior[["ant_imagecol"]] <- anterior@images$anterior@boundaries$centroids@coords[,2]
+
+# VisiumV1版本的坐标提取方法
 anterior[["ant_imagerow"]] <- anterior@images[["anterior"]]@coordinates[["imagerow"]]
 anterior[["ant_imagecol"]] <- anterior@images[["anterior"]]@coordinates[["imagecol"]]
 
 #提取方法
-cortex <- subset(anterior,ant_imagerow > 5000 & ant_imagecol < 9000)
-cortex <- subset(cortex,ant_imagerow < 9000 & ant_imagecol > 5000)
+cortex <- subset(anterior,ant_imagerow > 5000 & ant_imagecol < 9000) # 根据坐标提取行大于5000且列小于9000的区域
+cortex <- subset(cortex,ant_imagerow < 9000 & ant_imagecol > 5000) # 根据坐标提取上一步提取的行小于9000且列大于5000的局部区域
 #从全局查看提取结果
-cortex@images[["posterior"]] <- NULL
-SpatialDimPlot(cortex, crop = FALSE, label = TRUE, pt.size.factor = 1, label.size = 3)
+cortex@images[["posterior"]] <- NULL # 删除posterior图像
+SpatialDimPlot(cortex, crop = FALSE, label = TRUE, pt.size.factor = 2, label.size = 3)# crop参数设置为TRUE可以只显示提取的局部区域，设置为FALSE可以同时显示全局图像和提取的局部区域
 
 #数据归一化
 cortex <- NormalizeData(cortex,normalization = "LogNormalize")
@@ -343,18 +356,22 @@ cortex <- ScaleData(cortex,features = rownames(cortex))
 cortex <- RunPCA(cortex,npcs = 50)
 ElbowPlot(cortex)
 
+# 第二种数据归一化的方法用 SCTransform 
 cortex <- SCTransform(cortex,assay = "Spatial")  #1min
 cortex <- RunPCA(cortex)
-
 #基于PCA对Spot进行聚类
 cortex <- FindNeighbors(cortex,dims = 1:10)
 cortex <- FindClusters(cortex,resolution = 0.4)
+
+ElbowPlot(cortex)
 
 #查看局部区域的分群结果
 p1 <- SpatialDimPlot(cortex, crop = TRUE, label = TRUE)
 p2 <- SpatialDimPlot(cortex, crop = FALSE, label = TRUE, pt.size.factor = 1, label.size = 3)
 
+pdf(paste0(output_dir,project.name,"_07_cortex_spatial_plots.pdf"),width = 10,height = 6)
 p1+p2
+dev.off()
 
 #使用Tsne和umap图展示局部区域的细胞分群结果
 cortex <- RunTSNE(cortex,dims = 1:30,label=T)
@@ -363,10 +380,13 @@ p3 <- DimPlot(cortex,reduction = "tsne",pt.size = 1.5,label = T)
 cortex <- RunUMAP(cortex, dims = 1:30, label = T)
 p4 <- DimPlot(cortex, reduction = "umap",pt.size = 1.5,label = T)
 
+
+pdf(paste0(output_dir,project.name,"_08_cortex_tsne_umap.pdf"),width = 10,height = 5)
 p3+p4
+dev.off()
 
-#save(cortex,file = "cortex.Rda")
+# save(cortex,file = paste0(output_dir,"cortex.Rda"))
 
-#提取局部区域
+# 提取0 1亚群的spot进行可视化
 cortex_C1_C2 <- subset(cortex,idents = c("0","1"))
 SpatialDimPlot(cortex_C1_C2, crop = FALSE, label = TRUE, pt.size.factor = 1, label.size = 3)
