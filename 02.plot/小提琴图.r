@@ -2,8 +2,15 @@
 library(Seurat)
 library(ggplot2)
 
+getwd()
+setwd("/data/h007/workspace/SpatialTranscriptomics/2.Demo/02.plot/")
+project.name <- "ST"
+output_dir <- "./output/"
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
 #读取数据
-load('ST_anno.Rda')
+load('ST_anno.rda')
 dim(st)
 
 #从seurat对象提取基因的表达量信息
@@ -13,8 +20,8 @@ Col2a1<-FetchData(st,vars = 'Col2a1')
 #提取oligo细胞marker基因平均表达量信息
 Oligo<-c('Olig1','Olig2','Mbp')
 Oligo.data<-FetchData(st,vars = Oligo)
-Oligo.data<-expm1(Oligo.data)
-Oligo.data<-log1p(rowMeans(Oligo.data))
+Oligo.data<-expm1(Oligo.data) # 对表达量数据进行指数转换
+Oligo.data<-log1p(rowMeans(Oligo.data)) # 将平均表达量数据转为自然对数
 
 #构建绘制小提琴图所需的表达量表格
 volin.data<-data.frame(cell.id = colnames(st),
@@ -62,4 +69,6 @@ p5<-ggplot(volin.data,aes(x = celltype,y = Oligo.data))+
 p5
 
 #保存图片
-ggsave(filename = "violin.pdf",plot = p5)
+pdf(file = paste0(output_dir,project.name,"_Oligo_violin.pdf"),width = 8,height = 6)
+p5
+dev.off()

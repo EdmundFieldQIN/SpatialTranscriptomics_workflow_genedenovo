@@ -1,4 +1,5 @@
 .vscode/
-output/
+01.seurat/output/
+02.plot/output/
 02.plot/ST_anno.rda
 02.plot/dif.rds

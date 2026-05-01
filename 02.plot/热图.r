@@ -4,6 +4,14 @@ library(pheatmap)
 library(ggplot2)
 library(dplyr)
 
+getwd()
+setwd("/data/h007/workspace/SpatialTranscriptomics/2.Demo/02.plot/")
+project.name <- "ST"
+output_dir <- "./output/"
+if (!dir.exists(output_dir)) {
+  dir.create(output_dir)
+}
+
 #读取单细胞转录组数据
 load('ST_anno.Rda')
 dim(st)
@@ -16,8 +24,8 @@ sig.dif<-dif%>%group_by(cluster)%>%top_n(n=5,wt=avg_log2FC)
 genes<-unique(sig.dif$gene)
 
 #获取绘图使用的表达量信息
-st<-ScaleData(st,features = row.names(st))
-data<-st@assays$Spatial$scale.data[genes,]
+st<-ScaleData(st,features = row.names(st))# 对数据进行归一化处理
+data<-st@assays$Spatial$scale.data[genes,] # 提取用于绘图的基因(Markers)的表达矩阵
 
 #默认参数绘图
 pheatmap(data)
@@ -43,10 +51,10 @@ pheatmap(data,scale = "none",cluster_cols = FALSE,cluster_rows = FALSE,show_coln
          legend_breaks = seq(-2,2,1),legend_labels = seq(-2,2,1))
 
 #更改渐变颜色和图例颜色
-color<-colorRampPalette(c("navy", "white", "firebrick3"))(50)
-color1<-c("#00468B","#925E9F","#759EDD","#0099B4","#76D1B1","#42B540","#B8D24D",
-         "#EDE447","#FAB158","#FF7777","#FD0000","#AD002A","#AE8691","#CE9573",
-         "#756455")
+color <- colorRampPalette(c("navy", "white", "firebrick3"))(50)
+color1 <- c("#00468B","#925E9F","#759EDD","#0099B4","#76D1B1","#42B540","#B8D24D",
+            "#EDE447","#FAB158","#FF7777","#FD0000","#AD002A","#AE8691","#CE9573",
+            "#756455")
 celltype.col<-color1[1:length(unique(celltype$celltype))]
 names(celltype.col)<-unique(celltype$celltype)
 col<-list(celltype = celltype.col,gene.anno = celltype.col)
